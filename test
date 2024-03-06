@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+beta = 0.8#Rate of infection from exposure
+gamma = 0.1#Rate of recovery
+delta = 0.005#Morality rate
+epsilon = 1#Rate of exposure
+omega = 0.001#Per capita population growth rate birthrate
+roh = 0.0005#Per capita normal death rate
+
+P0= 10000#Initial population
+E0= 50#initially exposed but not infectious
+I0= 35#initially infectious
+R0= 0#initially recovered
+D0= 0#initially dead
+S0= P0-I0-E0-R0-D0#initially susceptible
+
+t = np.linspace(0,200, 200)
+
+def protomodel(y,t,beta,gamma,delta,epsilon,omega,roh):
+    P, S, E, I, R, D = y
+    dPdt = omega*P-roh*P-delta*I
+    dSdt = omega*P-epsilon*I*S/P-roh*S
+    dEdt = epsilon*I*S/P-beta*E-roh*E
+    dIdt = beta*E-delta*I-gamma*I-roh*I
+    dRdt = gamma*I-roh*R
+    dDdt = delta*I+roh*P
+    return [dPdt,dSdt,dEdt,dIdt,dRdt,dDdt]
+y0 = [P0,S0,E0,I0,R0,D0]
+protosolution = odeint(protomodel, y0, t, args=(beta,gamma,delta,epsilon,omega,roh))
+
+P,S,E,I,R,D = protosolution.T
+
+plt.figure(figsize=(10, 6))
+plt.plot(t, S, 'b', label='Susceptible')
+plt.plot(t, I, 'r', label='Infectious')
+plt.plot(t, R, 'g', label='Recovered')
+plt.plot(t, P, 'orange', label = 'Population')
+plt.plot(t, E, 'lime', label = 'Exposed')
+plt.plot(t, D, 'pink', label = 'Dead')
+plt.title('Basic SIR Model')
+plt.xlabel('Time / days')
+plt.ylabel('Number of Individuals')
+plt.legend()
+plt.grid(True)
+plt.show()
